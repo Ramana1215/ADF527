@@ -1,0 +1,58 @@
+{
+	"name": "ds_teamdeatilssql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CDCkey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "playerName",
+				"type": "varchar"
+			},
+			{
+				"name": "Desinigination",
+				"type": "varchar"
+			},
+			{
+				"name": "ContactNo",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "Location",
+				"type": "varchar"
+			},
+			{
+				"name": "IsActive",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Fromdate",
+				"type": "date"
+			},
+			{
+				"name": "ToDate",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Teamdeatils_Type2"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

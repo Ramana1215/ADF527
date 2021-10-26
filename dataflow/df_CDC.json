@@ -1,0 +1,45 @@
+{
+	"name": "df_CDC",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_cdcfile",
+						"type": "DatasetReference"
+					},
+					"name": "cdcfile"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_employesql",
+						"type": "DatasetReference"
+					},
+					"name": "prevousdata"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_employesql",
+						"type": "DatasetReference"
+					},
+					"name": "tartget"
+				}
+			],
+			"transformations": [
+				{
+					"name": "newhaskey"
+				},
+				{
+					"name": "prevoushashkey"
+				},
+				{
+					"name": "Exists1"
+				}
+			],
+			"script": "source(output(\n\t\tempid as integer,\n\t\tName as string,\n\t\tCounty as string,\n\t\tDepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> cdcfile\nsource(output(\n\t\tempID as integer,\n\t\tName as string,\n\t\tCounty as string,\n\t\tDepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> prevousdata\ncdcfile derive(Hashkeynew = sha2(256,County,Department)) ~> newhaskey\nprevousdata derive(hashkeyprv = sha2(256, County,Department)) ~> prevoushashkey\nnewhaskey, prevoushashkey exists(Hashkeynew == hashkeyprv\n\t&& cdcfile@empid == prevousdata@empID,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tempID as integer,\n\t\tName as string,\n\t\tCounty as string,\n\t\tDepartment as string\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tempID = empid,\n\t\tName,\n\t\tCounty,\n\t\tDepartment\n\t)) ~> tartget"
+		}
+	}
+}

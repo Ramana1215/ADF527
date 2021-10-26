@@ -1,0 +1,35 @@
+{
+	"name": "df_fixedtocsv",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_fixedlengthfile",
+						"type": "DatasetReference"
+					},
+					"name": "fixedfile"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_fixedtocsvfile",
+						"type": "DatasetReference"
+					},
+					"name": "csvfile"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "requiredcolumns"
+				}
+			],
+			"script": "source(output(\n\t\tColumn_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> fixedfile\nfixedfile derive(EMPID = substring(Column_1, 1,4),\n\t\tEMPNAME = substring(Column_1, 5,10),\n\t\tSTATE = substring(Column_1, 15,2),\n\t\tPHONE = substring(Column_1, 17,10)) ~> DerivedColumn1\nDerivedColumn1 select(mapColumn(\n\t\tEMPID,\n\t\tEMPNAME,\n\t\tSTATE,\n\t\tPHONE\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> requiredcolumns\nrequiredcolumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:'fixedtocsv',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> csvfile"
+		}
+	}
+}

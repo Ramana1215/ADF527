@@ -1,0 +1,91 @@
+{
+	"name": "df_SCDtype2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_srcteamdeatils",
+						"type": "DatasetReference"
+					},
+					"name": "ADLS2"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_teamdeatilssql",
+						"type": "DatasetReference"
+					},
+					"name": "maxKeyfrmTBL"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_teamdeatilssql",
+						"type": "DatasetReference"
+					},
+					"name": "dbsqltbl"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_teamdeatilssql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_teamdeatilssql",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_teamdeatilssql",
+						"type": "DatasetReference"
+					},
+					"name": "sink3"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_teamdeatilssql",
+						"type": "DatasetReference"
+					},
+					"name": "sink4"
+				}
+			],
+			"transformations": [
+				{
+					"name": "aliasedname"
+				},
+				{
+					"name": "CrossJoin"
+				},
+				{
+					"name": "leftjoinDBtbl"
+				},
+				{
+					"name": "Split1"
+				},
+				{
+					"name": "Join1"
+				},
+				{
+					"name": "ConditionalSplit2"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "AlterRow2"
+				}
+			],
+			"script": "source(output(\n\t\tID as integer,\n\t\tNAME as string,\n\t\tDesignation as string,\n\t\tPhoneNo as long,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLS2\nsource(output(\n\t\tMaxKey as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select max(CDCkey) as MaxKey from [dbo].[Teamdeatils_Type2]',\n\tformat: 'query') ~> maxKeyfrmTBL\nsource(output(\n\t\tCDCkey as integer,\n\t\tID as integer,\n\t\tplayerName as string,\n\t\tDesinigination as string,\n\t\tContactNo as long,\n\t\tLocation as string,\n\t\tIsActive as integer,\n\t\tFromdate as date,\n\t\tToDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dbsqltbl\nADLS2 select(mapColumn(\n\t\tsrc_ID = ID,\n\t\tsrc_NAME = NAME,\n\t\tsrc_Designation = Designation,\n\t\tsrc_PhoneNo = PhoneNo,\n\t\tsrc_Location = Location\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> aliasedname\naliasedname, maxKeyfrmTBL join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> CrossJoin\nCrossJoin, dbsqltbl join(src_ID == ID,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> leftjoinDBtbl\nleftjoinDBtbl split(src_ID==ID,\n\tdisjoint: false) ~> Split1@(Match, InsertUnmatched)\nSplit1@Match, dbsqltbl join(src_Designation == dbsqltbl@Desinigination,\n\tjoinType:'left',\n\tbroadcast: 'right')~> Join1\nJoin1 split(src_Designation==Split1@Match@Desinigination,\n\tdisjoint: false) ~> ConditionalSplit2@(Match1, Unmatch)\nConditionalSplit2@Match1 alterRow(updateIf(1==1)) ~> AlterRow1\nConditionalSplit2@Unmatch derive(IsActive = 0,\n\t\tToDate = currentDate()) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(ConditionalSplit2@Unmatch@CDCkey<=MaxKey)) ~> AlterRow2\nSplit1@InsertUnmatched sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tCDCkey as integer,\n\t\tID as integer,\n\t\tplayerName as string,\n\t\tDesinigination as string,\n\t\tContactNo as long,\n\t\tLocation as string,\n\t\tIsActive as integer,\n\t\tFromdate as date,\n\t\tToDate as date\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tID = src_ID,\n\t\tplayerName = src_NAME,\n\t\tDesinigination = src_Designation,\n\t\tContactNo = src_PhoneNo,\n\t\tLocation = src_Location,\n\t\tIsActive\n\t)) ~> sink1\nAlterRow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tCDCkey as integer,\n\t\tID as integer,\n\t\tplayerName as string,\n\t\tDesinigination as string,\n\t\tContactNo as long,\n\t\tLocation as string,\n\t\tIsActive as integer,\n\t\tFromdate as date,\n\t\tToDate as date\n\t),\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['ID'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tID = src_ID,\n\t\tContactNo = src_PhoneNo,\n\t\tLocation = src_Location\n\t)) ~> sink2\nConditionalSplit2@Unmatch sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tCDCkey as integer,\n\t\tID as integer,\n\t\tplayerName as string,\n\t\tDesinigination as string,\n\t\tContactNo as long,\n\t\tLocation as string,\n\t\tIsActive as integer,\n\t\tFromdate as date,\n\t\tToDate as date\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tID = src_ID,\n\t\tplayerName = src_NAME,\n\t\tDesinigination = src_Designation,\n\t\tContactNo = src_PhoneNo,\n\t\tLocation = src_Location\n\t)) ~> sink3\nAlterRow2 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tCDCkey as integer,\n\t\tID as integer,\n\t\tplayerName as string,\n\t\tDesinigination as string,\n\t\tContactNo as long,\n\t\tLocation as string,\n\t\tIsActive as integer,\n\t\tFromdate as date,\n\t\tToDate as date\n\t),\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['ID'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tID = src_ID,\n\t\tIsActive,\n\t\tToDate\n\t)) ~> sink4"
+		}
+	}
+}

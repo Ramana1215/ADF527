@@ -1,0 +1,20 @@
+{
+	"name": "powerquery1",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "src_prd",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> src_prd",
+					"dataset": {
+						"referenceName": "ds_src_prd",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared src_prd = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://sourceinput527.blob.core.windows.net/adfnput/Product.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared UserQuery = let\r\n  Source = src_prd,\r\n  #\"Renamed columns\" = Table.RenameColumns(Source, {{\"ModifiedDate\", \"product\"}}),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Renamed columns\", {\"SellStartDate\"})\r\nin\r\n  #\"Removed columns\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

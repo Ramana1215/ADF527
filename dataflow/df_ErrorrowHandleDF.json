@@ -1,0 +1,45 @@
+{
+	"name": "df_ErrorrowHandleDF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_salesINDmay",
+						"type": "DatasetReference"
+					},
+					"name": "sales"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_salesbadop",
+						"type": "DatasetReference"
+					},
+					"name": "BadFile"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_salescorrect",
+						"type": "DatasetReference"
+					},
+					"name": "Goodfile"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ConditionalSplit1"
+				},
+				{
+					"name": "filenamecolumn"
+				},
+				{
+					"name": "DerivedColumn1"
+				}
+			],
+			"script": "source(output(\n\t\tsalesdate as string,\n\t\tsalesItem as string,\n\t\tcountry as string,\n\t\tqunatity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sales\nsales split(isNull(toDate(salesdate, 'dd-MMM-yyyy')),\n\tdisjoint: false) ~> ConditionalSplit1@(error, Good)\nConditionalSplit1@error derive(Filename = 'SalesIND_2021_MAY_01') ~> filenamecolumn\nConditionalSplit1@Good derive(GDfilename = 'SalesIND_2021_MAY_01') ~> DerivedColumn1\nfilenamecolumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:('SalesIND_2021_MAY_01_bad'),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tsalesdate,\n\t\tsalesItem,\n\t\tcountry,\n\t\tqunatity,\n\t\tFilename\n\t)) ~> BadFile\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:('SalesIND_2021_MAY_01_good'),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Goodfile"
+		}
+	}
+}

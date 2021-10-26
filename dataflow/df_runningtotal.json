@@ -1,0 +1,32 @@
+{
+	"name": "df_runningtotal",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_order",
+						"type": "DatasetReference"
+					},
+					"name": "order"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_outputtotal",
+						"type": "DatasetReference"
+					},
+					"name": "tgtruuningtotal"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Window1"
+				}
+			],
+			"script": "source(output(\n\t\torder as string,\n\t\titmname as string,\n\t\tquntiry as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> order\norder window(asc(quntiry, true),\n\tRunningqtytotal = sum(toInteger(quntiry))) ~> Window1\nWindow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string,\n\t\t{_c4} as string\n\t),\n\tfilePattern:'runningtotal.csv',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> tgtruuningtotal"
+		}
+	}
+}

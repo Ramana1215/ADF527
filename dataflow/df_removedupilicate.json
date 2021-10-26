@@ -1,0 +1,45 @@
+{
+	"name": "df_removedupilicate",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_frnd",
+						"type": "DatasetReference"
+					},
+					"name": "frnd"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_frndnew",
+						"type": "DatasetReference"
+					},
+					"name": "frndnew"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_cleandatanodupilcate",
+						"type": "DatasetReference"
+					},
+					"name": "cleandata"
+				}
+			],
+			"transformations": [
+				{
+					"name": "uniondata"
+				},
+				{
+					"name": "removedupicate"
+				},
+				{
+					"name": "sortingid"
+				}
+			],
+			"script": "source(output(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> frnd\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> frndnew\nfrnd, frndnew union(byName: true)~> uniondata\nuniondata aggregate(groupBy(id),\n\teach(match(name!='id'), $$ = first($$))) ~> removedupicate\nremovedupicate sort(asc(id, true)) ~> sortingid\nsortingid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:'nodupilcate.csv',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> cleandata"
+		}
+	}
+}

@@ -1,0 +1,57 @@
+{
+	"name": "df_allempys",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_allemp",
+						"type": "DatasetReference"
+					},
+					"name": "allemp"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_employees",
+						"type": "DatasetReference"
+					},
+					"name": "emplooyes"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_allempfinalop",
+						"type": "DatasetReference"
+					},
+					"name": "targetallemp"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "Aggregate1"
+				},
+				{
+					"name": "Join1"
+				},
+				{
+					"name": "SurrogateKey1"
+				},
+				{
+					"name": "DerivedColumn2"
+				},
+				{
+					"name": "Select1"
+				},
+				{
+					"name": "Union1"
+				}
+			],
+			"script": "source(output(\n\t\tid as string,\n\t\tname as string,\n\t\tgender as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> allemp\nsource(output(\n\t\tname as string,\n\t\tgender as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> emplooyes\nallemp derive(dummy = 'dummy') ~> DerivedColumn1\nDerivedColumn1 aggregate(groupBy(dummy),\n\tMaxID = max(id)) ~> Aggregate1\nAggregate1, emplooyes join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> Join1\nJoin1 keyGenerate(output(id as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 derive(id = toString(toInteger(id)+toInteger(MaxID))) ~> DerivedColumn2\nDerivedColumn2 select(mapColumn(\n\t\tname,\n\t\tgender,\n\t\tdepartment,\n\t\tid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nallemp, Select1 union(byName: true)~> Union1\nUnion1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string,\n\t\t{_c4} as string\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> targetallemp"
+		}
+	}
+}
