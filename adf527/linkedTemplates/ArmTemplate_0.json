@@ -407,7 +407,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "copy.csv",
+						"fileName": "CDCFile.csv",
 						"container": "adfnput"
 					},
 					"columnDelimiter": ",",
