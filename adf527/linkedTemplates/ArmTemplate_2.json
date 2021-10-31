@@ -856,7 +856,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_latestfile')]",
+			"name": "[concat(parameters('factoryName'), '/pl_tolatestfile')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
