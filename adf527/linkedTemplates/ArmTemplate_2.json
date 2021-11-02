@@ -13,21 +13,57 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_Empskill')]",
+			"name": "[concat(parameters('factoryName'), '/ds_tgtscdtype')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "empID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Name",
+						"type": "varchar"
+					},
+					{
+						"name": "County",
+						"type": "varchar"
+					},
+					{
+						"name": "Department",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "employee"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_tgttsvfile')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalakegen2",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "EmpSkill.csv",
-						"container": "adfnput"
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "inputdata"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -36,15 +72,71 @@
 				},
 				"schema": [
 					{
-						"name": "emid",
+						"name": "VendorID",
 						"type": "String"
 					},
 					{
-						"name": "emname",
+						"name": "tpep_pickup_datetime",
 						"type": "String"
 					},
 					{
-						"name": "skill",
+						"name": "tpep_dropoff_datetime",
+						"type": "String"
+					},
+					{
+						"name": "passenger_count",
+						"type": "String"
+					},
+					{
+						"name": "trip_distance",
+						"type": "String"
+					},
+					{
+						"name": "RatecodeID",
+						"type": "String"
+					},
+					{
+						"name": "store_and_fwd_flag",
+						"type": "String"
+					},
+					{
+						"name": "PickupLocationId",
+						"type": "String"
+					},
+					{
+						"name": "DropLocationId",
+						"type": "String"
+					},
+					{
+						"name": "payment_type",
+						"type": "String"
+					},
+					{
+						"name": "fare_amount",
+						"type": "String"
+					},
+					{
+						"name": "extra",
+						"type": "String"
+					},
+					{
+						"name": "mta_tax",
+						"type": "String"
+					},
+					{
+						"name": "tip_amount",
+						"type": "String"
+					},
+					{
+						"name": "tolls_amount",
+						"type": "String"
+					},
+					{
+						"name": "improvement_surcharge",
+						"type": "String"
+					},
+					{
+						"name": "total_amount",
 						"type": "String"
 					}
 				]
@@ -52,48 +144,140 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_empskilloutput')]",
+			"name": "[concat(parameters('factoryName'), '/product')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
+					"referenceName": "AzureSqlDatabase1",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": "adf-output"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
+				"type": "AzureSqlTable",
 				"schema": [
 					{
-						"name": "id",
-						"type": "String"
+						"name": "ProductID",
+						"type": "int",
+						"precision": 10,
+						"scale": 0
 					},
 					{
-						"name": "name",
-						"type": "String"
+						"name": "Name",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
 					},
 					{
-						"name": "cntry",
-						"type": "String"
+						"name": "ProductNumber",
+						"type": "nvarchar",
+						"precision": 0,
+						"scale": 0
 					},
 					{
-						"name": "depatmnt",
-						"type": "String"
+						"name": "Color",
+						"type": "nvarchar",
+						"precision": 0,
+						"scale": 0
 					},
 					{
-						"name": "_c4",
-						"type": "String"
+						"name": "StandardCost",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "ListPrice",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "Size",
+						"type": "nvarchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "Weight",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "ProductCategoryID",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "ProductModelID",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "SellStartDate",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "SellEndDate",
+						"type": "varchar",
+						"precision": 0,
+						"scale": 0
 					}
-				]
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Product"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_API')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "HttpServer",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_opfromapi')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalakegen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "apifileop",
+						"fileSystem": "inputdata"
+					}
+				}
 			},
 			"dependsOn": []
 		},
@@ -170,7 +354,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_tgttsvfile')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_Copy_prd_ctg')]",
@@ -525,7 +711,9 @@
 				"annotations": [],
 				"lastPublishTime": "2021-10-23T18:36:12Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/product')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_addingnewcolumndurimgcopy')]",
@@ -1491,7 +1679,9 @@
 					"script": "source(output(\n\t\tempID as integer,\n\t\tName as string,\n\t\tCounty as string,\n\t\tDepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> scdsrc\nscdsrc alterRow(upsertIf(1==1)) ~> AlterRow1\nAlterRow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tempID as integer,\n\t\tName as string,\n\t\tCounty as string,\n\t\tDepartment as string\n\t),\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['empID'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tempID,\n\t\tName,\n\t\tCounty,\n\t\tDepartment\n\t)) ~> sink1"
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_tgtscdtype')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/df_SCDtype2')]",
@@ -1643,134 +1833,6 @@
 						}
 					],
 					"script": "source(output(\n\t\tid as string,\n\t\tname as string,\n\t\tgender as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> allemp\nsource(output(\n\t\tname as string,\n\t\tgender as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> emplooyes\nallemp derive(dummy = 'dummy') ~> DerivedColumn1\nDerivedColumn1 aggregate(groupBy(dummy),\n\tMaxID = max(id)) ~> Aggregate1\nAggregate1, emplooyes join(1==1,\n\tjoinType:'cross',\n\tbroadcast: 'auto')~> Join1\nJoin1 keyGenerate(output(id as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 derive(id = toString(toInteger(id)+toInteger(MaxID))) ~> DerivedColumn2\nDerivedColumn2 select(mapColumn(\n\t\tname,\n\t\tgender,\n\t\tdepartment,\n\t\tid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nallemp, Select1 union(byName: true)~> Union1\nUnion1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string,\n\t\t{_c4} as string\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> targetallemp"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_fixedtocsv')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_fixedlengthfile",
-								"type": "DatasetReference"
-							},
-							"name": "fixedfile"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ds_fixedtocsvfile",
-								"type": "DatasetReference"
-							},
-							"name": "csvfile"
-						}
-					],
-					"transformations": [
-						{
-							"name": "DerivedColumn1"
-						},
-						{
-							"name": "requiredcolumns"
-						}
-					],
-					"script": "source(output(\n\t\tColumn_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> fixedfile\nfixedfile derive(EMPID = substring(Column_1, 1,4),\n\t\tEMPNAME = substring(Column_1, 5,10),\n\t\tSTATE = substring(Column_1, 15,2),\n\t\tPHONE = substring(Column_1, 17,10)) ~> DerivedColumn1\nDerivedColumn1 select(mapColumn(\n\t\tEMPID,\n\t\tEMPNAME,\n\t\tSTATE,\n\t\tPHONE\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> requiredcolumns\nrequiredcolumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:'fixedtocsv',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> csvfile"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_m_dataflow_join')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_src_prd",
-								"type": "DatasetReference"
-							},
-							"name": "product"
-						},
-						{
-							"dataset": {
-								"referenceName": "ds_src_prd_cagry",
-								"type": "DatasetReference"
-							},
-							"name": "prdcatgry"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ds_output",
-								"type": "DatasetReference"
-							},
-							"name": "productoutput"
-						}
-					],
-					"transformations": [
-						{
-							"name": "Joinproductcatgry"
-						}
-					],
-					"script": "source(output(\n\t\tProductID as string,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as string,\n\t\tListPrice as string,\n\t\tSize as string,\n\t\tWeight as string,\n\t\tProductCategoryID as string,\n\t\tProductModelID as string,\n\t\tSellStartDate as string,\n\t\tSellEndDate as string,\n\t\tModifiedDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> product\nsource(output(\n\t\tProductCategoryID as string,\n\t\tParentProductCategoryID as string,\n\t\tName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> prdcatgry\nproduct, prdcatgry join(product@ProductCategoryID == prdcatgry@ProductCategoryID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Joinproductcatgry\nJoinproductcatgry sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tProductID,\n\t\tName = product@Name,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tProductCategoryID = product@ProductCategoryID,\n\t\tProductModelID,\n\t\tSellStartDate,\n\t\tSellEndDate,\n\t\tModifiedDate,\n\t\tParentProductCategoryID,\n\t\tproductcategoryName = prdcatgry@Name\n\t)) ~> productoutput"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_removedupilicate')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_frnd",
-								"type": "DatasetReference"
-							},
-							"name": "frnd"
-						},
-						{
-							"dataset": {
-								"referenceName": "ds_frndnew",
-								"type": "DatasetReference"
-							},
-							"name": "frndnew"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ds_cleandatanodupilcate",
-								"type": "DatasetReference"
-							},
-							"name": "cleandata"
-						}
-					],
-					"transformations": [
-						{
-							"name": "uniondata"
-						},
-						{
-							"name": "removedupicate"
-						},
-						{
-							"name": "sortingid"
-						}
-					],
-					"script": "source(output(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> frnd\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> frndnew\nfrnd, frndnew union(byName: true)~> uniondata\nuniondata aggregate(groupBy(id),\n\teach(match(name!='id'), $$ = first($$))) ~> removedupicate\nremovedupicate sort(asc(id, true)) ~> sortingid\nsortingid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:'nodupilcate.csv',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> cleandata"
 				}
 			},
 			"dependsOn": []

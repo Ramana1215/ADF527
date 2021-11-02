@@ -23,6 +23,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_datalakegen2'"
 		},
+		"HttpServer_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqbklzZFdzYlhyQUgtQ0laZTd6REQyNjVCaXFEZ3xBQ3Jtc0trRDBVTnJFc1YzNVZ3Ry1TeGEzSDJJNnRCMmZwM1dFM1FmNzh0N09NLWphVWJOeVRBUV9rTWVIcmxYVk92WHdZb19MSFhoSFFFRWxLY3phblRfZWRwZ04zb1VnaUVlRnpiUFVMLU9IbDNPTndMSllJUQ&q=https%3A%2F%2Ffile-examples-com.github.io%2Fuploads%2F2017%2F02%2Ffile_example_XLSX_5000.xlsx"
+		},
 		"ls_datalakegen2_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://gendatalake527.dfs.core.windows.net"
@@ -65,6 +69,9 @@
 					},
 					"ls_datalakegen2_accountKey": {
 						"value": "[parameters('ls_datalakegen2_accountKey')]"
+					},
+					"HttpServer_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer_properties_typeProperties_url')]"
 					},
 					"ls_datalakegen2_properties_typeProperties_url": {
 						"value": "[parameters('ls_datalakegen2_properties_typeProperties_url')]"
