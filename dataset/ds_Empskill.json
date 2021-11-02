@@ -1,0 +1,36 @@
+{
+	"name": "ds_Empskill",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "EmpSkill.csv",
+				"container": "adfnput"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "emid",
+				"type": "String"
+			},
+			{
+				"name": "emname",
+				"type": "String"
+			},
+			{
+				"name": "skill",
+				"type": "String"
+			}
+		]
+	}
+}

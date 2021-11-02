@@ -1,0 +1,35 @@
+{
+	"name": "df_split_single_to_multiple",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_Empskill",
+						"type": "DatasetReference"
+					},
+					"name": "EmpSkill"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_empskilloutput",
+						"type": "DatasetReference"
+					},
+					"name": "tgt"
+				}
+			],
+			"transformations": [
+				{
+					"name": "stirngtoarray"
+				},
+				{
+					"name": "spiltrecord"
+				}
+			],
+			"script": "source(output(\n\t\temid as string,\n\t\temname as string,\n\t\tskill as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> EmpSkill\nEmpSkill derive(skill = split(skill,',')) ~> stirngtoarray\nstirngtoarray foldDown(unroll(skill),\n\tmapColumn(\n\t\temid,\n\t\temname,\n\t\tskill\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> spiltrecord\nspiltrecord sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string,\n\t\t{_c4} as string\n\t),\n\tpartitionFileNames:['empskill_outpu.csv '],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> tgt"
+		}
+	}
+}
