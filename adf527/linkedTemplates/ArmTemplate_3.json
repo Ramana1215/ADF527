@@ -13,6 +13,102 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/df_runningtotal')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_order",
+								"type": "DatasetReference"
+							},
+							"name": "order"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_outputtotal",
+								"type": "DatasetReference"
+							},
+							"name": "tgtruuningtotal"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Window1"
+						}
+					],
+					"script": "source(output(\n\t\torder as string,\n\t\titmname as string,\n\t\tquntiry as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> order\norder window(asc(quntiry, true),\n\tRunningqtytotal = sum(toInteger(quntiry))) ~> Window1\nWindow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string,\n\t\t{_c4} as string\n\t),\n\tfilePattern:'runningtotal.csv',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> tgtruuningtotal"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/powerquery1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "src_prd",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> src_prd",
+							"dataset": {
+								"referenceName": "ds_src_prd",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared src_prd = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://sourceinput527.blob.core.windows.net/adfnput/Product.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared UserQuery = let\r\n  Source = src_prd,\r\n  #\"Renamed columns\" = Table.RenameColumns(Source, {{\"ModifiedDate\", \"product\"}}),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Renamed columns\", {\"SellStartDate\"})\r\nin\r\n  #\"Removed columns\";\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_split_single_to_multiple')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_Empskill",
+								"type": "DatasetReference"
+							},
+							"name": "EmpSkill"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_empskilloutput",
+								"type": "DatasetReference"
+							},
+							"name": "tgt"
+						}
+					],
+					"transformations": [
+						{
+							"name": "stirngtoarray"
+						},
+						{
+							"name": "spiltrecord"
+						}
+					],
+					"script": "source(output(\n\t\temid as string,\n\t\temname as string,\n\t\tskill as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> EmpSkill\nEmpSkill derive(skill = split(skill,',')) ~> stirngtoarray\nstirngtoarray foldDown(unroll(skill),\n\tmapColumn(\n\t\temid,\n\t\temname,\n\t\tskill\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> spiltrecord\nspiltrecord sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tname as string,\n\t\tcntry as string,\n\t\tdepatmnt as string,\n\t\t{_c4} as string\n\t),\n\tpartitionFileNames:['empskill_outpu.csv '],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> tgt"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_DF_CDC')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -434,7 +530,56 @@
 				"annotations": [],
 				"lastPublishTime": "2021-10-25T17:03:09Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_runningtotal')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_DF_SpiltSingle')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_split_single_to_multiple",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"EmpSkill": {},
+									"tgt": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_split_single_to_multiple')]"
+			]
 		}
 	]
 }
